@@ -24,12 +24,18 @@ def delete_user(db: Session, user_id: int):
     return user
 
 # ----- POST -----
-def create_post(db: Session, title: str, content: str, user_id: int):
-    post = models.Post(title=title, content=content, user_id=user_id)
+def create_post(db, title, content, user_id, file_path=None):
+    post = models.Post(
+        title=title,
+        content=content,
+        user_id=user_id,
+        file_path=file_path
+    )
     db.add(post)
     db.commit()
     db.refresh(post)
     return post
+
 
 def get_posts(db: Session, user_id: int = None):
     query = db.query(models.Post)

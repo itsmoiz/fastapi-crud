@@ -2,6 +2,22 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .database import Base, engine, SessionLocal
 from . import schemas, crud, models
+from fastapi import (
+    FastAPI,
+    Depends,
+    UploadFile,
+    File,
+    Form,
+    BackgroundTasks
+)
+import os
+import shutil
+
+from . import crud, schemas
+from .background_tasks import process_uploaded_file
+
+UPLOAD_DIR = "app/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 Base.metadata.create_all(bind=engine)
 
@@ -32,8 +48,36 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 
 # ----- POSTS -----
 @app.post("/posts", response_model=schemas.PostOut)
-def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
-    return crud.create_post(db, post.title, post.content, post.user_id)
+async def create_post_with_file(
+    background_tasks: BackgroundTasks,
+    title: str = Form(...),
+    content: str = Form(...),
+    user_id: int = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+
+    file_path = f"app/uploads/{file.filename}"
+
+    with open(file_path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    post = crud.create_post(
+        db=db,
+        title=title,
+        content=content,
+        user_id=user_id,
+        file_path=file_path
+    )
+
+    background_tasks.add_task(
+        process_uploaded_file,
+        file_path
+    )
+
+    return post
+
+
 
 @app.get("/posts", response_model=list[schemas.PostOut])
 def list_posts(user_id: int = None, db: Session = Depends(get_db)):

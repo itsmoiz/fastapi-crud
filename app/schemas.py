@@ -20,8 +20,11 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     user_id: int
 
-class PostOut(PostBase):
+class PostOut(BaseModel):
     id: int
+    title: str
+    content: str
+    file_path: str | None = None
     comments: List[CommentOut] = []
 
     class Config:

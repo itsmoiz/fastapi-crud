@@ -23,14 +23,13 @@ class Post(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     content = Column(Text)
+    file_path = Column(String, nullable=True)
 
-    user_id = Column(
-        Integer,
-        ForeignKey("users.id", ondelete="CASCADE")
-    )
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
 
     owner = relationship("User", back_populates="posts")
 
+    # ✅ THIS LINE IS REQUIRED
     comments = relationship(
         "Comment",
         back_populates="post",
