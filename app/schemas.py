@@ -1,22 +1,42 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+from typing import List
 
+class CommentBase(BaseModel):
+    text: str
+
+class CommentCreate(CommentBase):
+    post_id: int
+
+class CommentOut(CommentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class PostBase(BaseModel):
+    title: str
+    content: str
+
+class PostCreate(PostBase):
+    user_id: int
+
+class PostOut(PostBase):
+    id: int
+    comments: List[CommentOut] = []
+
+    class Config:
+        from_attributes = True
 
 class UserBase(BaseModel):
     name: str
-    email: EmailStr
-    age: int
-
+    email: str
 
 class UserCreate(UserBase):
     pass
 
-
-class UserUpdate(UserBase):
-    pass
-
-
 class UserOut(UserBase):
     id: int
+    posts: List[PostOut] = []
 
     class Config:
         from_attributes = True
